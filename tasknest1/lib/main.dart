@@ -11,7 +11,7 @@ import 'views/settings_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await GetStorage.init();
-  await GetStorage().erase(); // 👈 This clears old data
+  //await GetStorage().erase(); // 👈 This clears old data
   runApp(TaskNestApp());
 }
 
