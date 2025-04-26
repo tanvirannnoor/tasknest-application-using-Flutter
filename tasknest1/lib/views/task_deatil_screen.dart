@@ -13,18 +13,18 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
   late Map<String, dynamic> task;
   late int taskIndex;
   late bool isEditing;
-  
+
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _titleController;
   late TextEditingController _descriptionController;
   late TextEditingController _reminderNotesController;
   late TextEditingController _remarksController;
-  
+
   late DateTime _startDate;
   late DateTime _deadline;
   late DateTime _nextReminder;
   late String _status;
-  
+
   final List<String> _statusOptions = ['Pending', 'OnGoing', 'Done'];
   final DateFormat _dateFormat = DateFormat('dd MMM yyyy');
   final DateFormat _dateTimeFormat = DateFormat('dd MMM yyyy - hh:mm a');
@@ -36,12 +36,14 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
     task = Map<String, dynamic>.from(args['task']);
     taskIndex = args['index'];
     isEditing = false;
-    
+
     _titleController = TextEditingController(text: task['title']);
     _descriptionController = TextEditingController(text: task['description']);
-    _reminderNotesController = TextEditingController(text: task['reminderNotes'] ?? '');
+    _reminderNotesController = TextEditingController(
+      text: task['reminderNotes'] ?? '',
+    );
     _remarksController = TextEditingController(text: task['remarks'] ?? '');
-    
+
     _startDate = DateTime.parse(task['startDate']);
     _deadline = DateTime.parse(task['deadline']);
     _nextReminder = DateTime.parse(task['nextReminder']);
@@ -86,19 +88,19 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
       setState(() {
         if (isStartDate) {
           _startDate = DateTime(
-            picked.year, 
-            picked.month, 
+            picked.year,
+            picked.month,
             picked.day,
-            _startDate.hour, 
-            _startDate.minute
+            _startDate.hour,
+            _startDate.minute,
           );
         } else {
           _deadline = DateTime(
-            picked.year, 
-            picked.month, 
+            picked.year,
+            picked.month,
             picked.day,
-            _deadline.hour, 
-            _deadline.minute
+            _deadline.hour,
+            _deadline.minute,
           );
         }
       });
@@ -124,7 +126,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
         );
       },
     );
-    
+
     if (pickedDate != null) {
       TimeOfDay? pickedTime = await showTimePicker(
         context: context,
@@ -142,7 +144,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
           );
         },
       );
-      
+
       if (pickedTime != null) {
         setState(() {
           _nextReminder = DateTime(
@@ -169,7 +171,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
         'status': _status,
         'remarks': _remarksController.text,
       };
-      
+
       Get.back(result: updatedTask);
     }
   }
@@ -177,24 +179,25 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
   void _deleteTask() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Task'),
-        content: const Text('Are you sure you want to delete this task?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Delete Task'),
+            content: const Text('Are you sure you want to delete this task?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Get.back(result: 'delete');
+                },
+                style: TextButton.styleFrom(foregroundColor: Colors.red),
+                child: const Text('Delete'),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              Get.back(result: 'delete');
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
     );
   }
 
@@ -220,15 +223,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
         foregroundColor: Colors.white,
         elevation: 0,
         actions: [
-          if (!isEditing)
-            IconButton(
-              icon: const Icon(Icons.edit),
-              onPressed: _toggleEdit,
-            ),
-          IconButton(
-            icon: const Icon(Icons.delete),
-            onPressed: _deleteTask,
-          ),
+          IconButton(icon: const Icon(Icons.delete), onPressed: _deleteTask),
         ],
       ),
       body: Container(
@@ -267,7 +262,10 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                         Row(
                           children: [
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
                               decoration: BoxDecoration(
                                 color: _getStatusColor(_status),
                                 borderRadius: BorderRadius.circular(12),
@@ -284,14 +282,17 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                         ),
                         const SizedBox(height: 12),
                         isEditing
-                          ? TextFormField(
+                            ? TextFormField(
                               controller: _titleController,
                               decoration: InputDecoration(
                                 labelText: 'Title',
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8),
                                 ),
-                                prefixIcon: const Icon(Icons.title, color: Colors.indigo),
+                                prefixIcon: const Icon(
+                                  Icons.title,
+                                  color: Colors.indigo,
+                                ),
                               ),
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
@@ -300,7 +301,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                                 return null;
                               },
                             )
-                          : Text(
+                            : Text(
                               task['title'],
                               style: const TextStyle(
                                 fontSize: 20,
@@ -311,7 +312,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                     ),
                   ),
                 ),
-                
+
                 const SizedBox(height: 20),
                 _buildSectionTitle('Description'),
                 Card(
@@ -321,28 +322,32 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
-                    child: isEditing
-                      ? TextFormField(
-                          controller: _descriptionController,
-                          decoration: InputDecoration(
-                            labelText: 'Description',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            prefixIcon: const Icon(Icons.description, color: Colors.indigo),
-                          ),
-                          maxLines: 3,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter a description';
-                            }
-                            return null;
-                          },
-                        )
-                      : Text(task['description']),
+                    child:
+                        isEditing
+                            ? TextFormField(
+                              controller: _descriptionController,
+                              decoration: InputDecoration(
+                                labelText: 'Description',
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                prefixIcon: const Icon(
+                                  Icons.description,
+                                  color: Colors.indigo,
+                                ),
+                              ),
+                              maxLines: 3,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Please enter a description';
+                                }
+                                return null;
+                              },
+                            )
+                            : Text(task['description']),
                   ),
                 ),
-                
+
                 const SizedBox(height: 20),
                 _buildSectionTitle('Dates & Times'),
                 Card(
@@ -355,14 +360,14 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                     child: Column(
                       children: [
                         isEditing
-                          ? _buildEditableDateTile(
+                            ? _buildEditableDateTile(
                               title: 'Start Date',
                               date: _startDate,
                               icon: Icons.play_circle_outline,
                               iconColor: Colors.green,
                               onTap: () => _selectDate(context, true),
                             )
-                          : _buildInfoTile(
+                            : _buildInfoTile(
                               title: 'Start Date',
                               value: _dateFormat.format(_startDate),
                               icon: Icons.play_circle_outline,
@@ -370,14 +375,14 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                             ),
                         const Divider(height: 1),
                         isEditing
-                          ? _buildEditableDateTile(
+                            ? _buildEditableDateTile(
                               title: 'Deadline',
                               date: _deadline,
                               icon: Icons.flag,
                               iconColor: Colors.red,
                               onTap: () => _selectDate(context, false),
                             )
-                          : _buildInfoTile(
+                            : _buildInfoTile(
                               title: 'Deadline',
                               value: _dateFormat.format(_deadline),
                               icon: Icons.flag,
@@ -385,18 +390,27 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                             ),
                         const Divider(height: 1),
                         isEditing
-                          ? ListTile(
+                            ? ListTile(
                               leading: const CircleAvatar(
                                 backgroundColor: Colors.orange,
-                                child: Icon(Icons.notifications_active, color: Colors.white, size: 20),
+                                child: Icon(
+                                  Icons.notifications_active,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
                               ),
                               title: const Text('Next Reminder'),
-                              subtitle: Text(_dateTimeFormat.format(_nextReminder)),
-                              trailing: const Icon(Icons.edit_calendar, size: 16),
+                              subtitle: Text(
+                                _dateTimeFormat.format(_nextReminder),
+                              ),
+                              trailing: const Icon(
+                                Icons.edit_calendar,
+                                size: 16,
+                              ),
                               onTap: () => _selectDateTime(context),
                             )
-                          : _buildInfoTile(
-                              title: 'Next Reminder', 
+                            : _buildInfoTile(
+                              title: 'Next Reminder',
                               value: _dateTimeFormat.format(_nextReminder),
                               icon: Icons.notifications_active,
                               iconColor: Colors.orange,
@@ -405,7 +419,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                     ),
                   ),
                 ),
-                
+
                 const SizedBox(height: 20),
                 _buildSectionTitle('Additional Information'),
                 Card(
@@ -425,7 +439,10 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
                               ),
-                              prefixIcon: const Icon(Icons.note_alt, color: Colors.orange),
+                              prefixIcon: const Icon(
+                                Icons.note_alt,
+                                color: Colors.orange,
+                              ),
                             ),
                             maxLines: 2,
                           ),
@@ -437,28 +454,32 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
                               ),
-                              prefixIcon: const Icon(Icons.pending_actions, color: Colors.purple),
+                              prefixIcon: const Icon(
+                                Icons.pending_actions,
+                                color: Colors.purple,
+                              ),
                             ),
-                            items: _statusOptions.map((String value) {
-                              Color chipColor = _getStatusColor(value);
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: Row(
-                                  children: [
-                                    Container(
-                                      width: 12,
-                                      height: 12,
-                                      decoration: BoxDecoration(
-                                        color: chipColor,
-                                        shape: BoxShape.circle,
-                                      ),
+                            items:
+                                _statusOptions.map((String value) {
+                                  Color chipColor = _getStatusColor(value);
+                                  return DropdownMenuItem<String>(
+                                    value: value,
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          width: 12,
+                                          height: 12,
+                                          decoration: BoxDecoration(
+                                            color: chipColor,
+                                            shape: BoxShape.circle,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(value),
+                                      ],
                                     ),
-                                    const SizedBox(width: 8),
-                                    Text(value),
-                                  ],
-                                ),
-                              );
-                            }).toList(),
+                                  );
+                                }).toList(),
                             onChanged: (String? newValue) {
                               if (newValue != null) {
                                 setState(() {
@@ -475,7 +496,10 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
                               ),
-                              prefixIcon: const Icon(Icons.comment, color: Colors.teal),
+                              prefixIcon: const Icon(
+                                Icons.comment,
+                                color: Colors.teal,
+                              ),
                             ),
                             maxLines: 2,
                           ),
@@ -498,7 +522,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                     ),
                   ),
                 ),
-                
+
                 if (isEditing) ...[
                   const SizedBox(height: 32),
                   Row(
@@ -514,7 +538,10 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          child: const Text('Cancel', style: TextStyle(fontSize: 16)),
+                          child: const Text(
+                            'Cancel',
+                            style: TextStyle(fontSize: 16),
+                          ),
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -529,7 +556,10 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          child: const Text('Save Changes', style: TextStyle(fontSize: 16)),
+                          child: const Text(
+                            'Save Changes',
+                            style: TextStyle(fontSize: 16),
+                          ),
                         ),
                       ),
                     ],
@@ -541,13 +571,14 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
           ),
         ),
       ),
-      floatingActionButton: !isEditing
-        ? FloatingActionButton(
-            onPressed: _toggleEdit,
-            backgroundColor: Colors.indigo,
-            child: const Icon(Icons.edit),
-          )
-        : null,
+      floatingActionButton:
+          !isEditing
+              ? FloatingActionButton(
+                onPressed: _toggleEdit,
+                backgroundColor: Colors.indigo,
+                child: const Icon(Icons.edit, color: Colors.white, size: 30),
+              )
+              : null,
     );
   }
 
@@ -578,17 +609,9 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
       ),
       title: Text(
         title,
-        style: const TextStyle(
-          fontWeight: FontWeight.bold,
-          fontSize: 14,
-        ),
+        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
       ),
-      subtitle: Text(
-        value,
-        style: const TextStyle(
-          fontSize: 16,
-        ),
-      ),
+      subtitle: Text(value, style: const TextStyle(fontSize: 16)),
     );
   }
 

@@ -303,28 +303,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ],
                               ),
                             ),
-                            Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 10,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.grey.shade100,
-                                borderRadius: const BorderRadius.only(
-                                  bottomLeft: Radius.circular(12),
-                                  bottomRight: Radius.circular(12),
-                                ),
-                              ),
-                              child: Text(
-                                'Tap to view details',
-                                style: TextStyle(
-                                  color: Colors.grey.shade600,
-                                  fontSize: 12,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
                           ],
                         ),
                       ),
@@ -341,7 +319,7 @@ class _HomeScreenState extends State<HomeScreen> {
         onPressed: _navigateToAddTask,
         backgroundColor: Colors.indigo,
         elevation: 4,
-        child: const Icon(Icons.add),
+        child: const Icon(Icons.add, size: 40, color: Colors.white),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
