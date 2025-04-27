@@ -16,12 +16,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
   // Settings variables
   final RxBool _darkMode = false.obs;
   final RxBool _notifications = true.obs;
-  final RxString _theme = 'Indigo'.obs;
   final RxString _reminderTime = '30 minutes before'.obs;
   final RxBool _vibration = true.obs;
-  final RxBool _showCompleted = true.obs;
 
-  final List<String> _themes = ['Indigo', 'Purple', 'Teal', 'Orange', 'Red'];
   final List<String> _reminderTimes = [
     '10 minutes before',
     '30 minutes before',
@@ -38,19 +35,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void _loadSettings() {
     _darkMode.value = box.read('darkMode') ?? false;
     _notifications.value = box.read('notifications') ?? true;
-    _theme.value = box.read('theme') ?? 'Indigo';
     _reminderTime.value = box.read('reminderTime') ?? '30 minutes before';
     _vibration.value = box.read('vibration') ?? true;
-    _showCompleted.value = box.read('showCompleted') ?? true;
   }
 
   void _saveSettings() {
     box.write('darkMode', _darkMode.value);
     box.write('notifications', _notifications.value);
-    box.write('theme', _theme.value);
     box.write('reminderTime', _reminderTime.value);
     box.write('vibration', _vibration.value);
-    box.write('showCompleted', _showCompleted.value);
 
     Get.snackbar(
       'Settings Saved',
@@ -62,21 +55,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       borderRadius: 12,
       icon: const Icon(Icons.check_circle, color: Colors.white),
     );
-  }
-
-  Color _getThemeColor(String theme) {
-    switch (theme) {
-      case 'Purple':
-        return Colors.purple;
-      case 'Teal':
-        return Colors.teal;
-      case 'Orange':
-        return Colors.orange;
-      case 'Red':
-        return Colors.red;
-      default:
-        return Colors.indigo;
-    }
   }
 
   @override
@@ -115,102 +93,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Icons.dark_mode,
               Colors.indigo,
               _darkMode,
-            ),
-            const SizedBox(height: 8),
-            Card(
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(Icons.color_lens, color: Colors.indigo),
-                        const SizedBox(width: 12),
-                        const Text(
-                          'Theme Color',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Obx(
-                      () => Wrap(
-                        spacing: 12,
-                        runSpacing: 12,
-                        children:
-                            _themes.map((theme) {
-                              final isSelected = _theme.value == theme;
-                              return GestureDetector(
-                                onTap: () => _theme.value = theme,
-                                child: Container(
-                                  width: 70,
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 8,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color:
-                                        isSelected
-                                            ? _getThemeColor(
-                                              theme,
-                                            ).withOpacity(0.2)
-                                            : Colors.transparent,
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(
-                                      color: _getThemeColor(theme),
-                                      width: isSelected ? 2 : 1,
-                                    ),
-                                  ),
-                                  child: Column(
-                                    children: [
-                                      Container(
-                                        width: 24,
-                                        height: 24,
-                                        decoration: BoxDecoration(
-                                          color: _getThemeColor(theme),
-                                          shape: BoxShape.circle,
-                                          boxShadow:
-                                              isSelected
-                                                  ? [
-                                                    BoxShadow(
-                                                      color: _getThemeColor(
-                                                        theme,
-                                                      ).withOpacity(0.4),
-                                                      blurRadius: 8,
-                                                      spreadRadius: 2,
-                                                    ),
-                                                  ]
-                                                  : null,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        theme,
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight:
-                                              isSelected
-                                                  ? FontWeight.bold
-                                                  : FontWeight.normal,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            }).toList(),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
             ),
 
             const SizedBox(height: 24),
@@ -251,17 +133,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       : const SizedBox.shrink(),
             ),
 
-            const SizedBox(height: 24),
-            _buildSettingsHeader('Task Display'),
-            const SizedBox(height: 16),
-            _buildSwitchTile(
-              'Show Completed Tasks',
-              'Display completed tasks in calendar',
-              Icons.check_circle,
-              Colors.green,
-              _showCompleted,
-            ),
-
             const SizedBox(height: 32),
             Card(
               elevation: 2,
@@ -276,7 +147,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     Icon(Icons.info_outline, color: Colors.indigo, size: 36),
                     const SizedBox(height: 8),
                     Text(
-                      'Task Manager v1.0',
+                      'Task Manager ',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -285,7 +156,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Made with Flutter',
+                      'v1.0',
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.grey.shade700,
