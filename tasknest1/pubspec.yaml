@@ -38,6 +38,9 @@ dependencies:
   get_storage: ^2.1.1
   intl: ^0.20.2
   table_calendar: ^3.2.0
+  flutter_local_notifications: ^19.1.0
+  timezone: ^0.10.0
+  rxdart: ^0.28.0
 
 dev_dependencies:
   flutter_test:

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'widgets/bottom_navbar.dart';
+import 'package:tasknest1/controllers/theme_controller.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -12,6 +13,7 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   final box = GetStorage();
+  final ThemeController themeController = Get.find<ThemeController>();
 
   // Settings variables
   final RxBool _darkMode = false.obs;
@@ -30,20 +32,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void initState() {
     super.initState();
     _loadSettings();
+    // Initialize dark mode from theme controller
+    _darkMode.value = themeController.theme == ThemeMode.dark;
   }
 
   void _loadSettings() {
-    _darkMode.value = box.read('darkMode') ?? false;
+    // Don't load dark mode from box, use theme controller's value
     _notifications.value = box.read('notifications') ?? true;
     _reminderTime.value = box.read('reminderTime') ?? '30 minutes before';
     _vibration.value = box.read('vibration') ?? true;
   }
 
   void _saveSettings() {
-    box.write('darkMode', _darkMode.value);
     box.write('notifications', _notifications.value);
     box.write('reminderTime', _reminderTime.value);
     box.write('vibration', _vibration.value);
+    // No need to save darkMode here as it's handled by the ThemeController
 
     Get.snackbar(
       'Settings Saved',
@@ -79,7 +83,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Colors.indigo.shade50, Colors.white],
+            colors: [
+              Get.theme.colorScheme.background,
+              Get.theme.scaffoldBackgroundColor,
+            ],
           ),
         ),
         child: ListView(
@@ -93,6 +100,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Icons.dark_mode,
               Colors.indigo,
               _darkMode,
+              onChanged: (bool newValue) {
+                _darkMode.value = newValue;
+                themeController.changeThemeMode(newValue);
+              },
             ),
 
             const SizedBox(height: 24),
@@ -169,7 +180,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: BottomNavBar(),
+      bottomNavigationBar: BottomNavBar(currentIndex: 2),
     );
   }
 
@@ -198,8 +209,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     String subtitle,
     IconData icon,
     Color color,
-    RxBool value,
-  ) {
+    RxBool value, {
+    Function(bool)? onChanged,
+  }) {
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -219,7 +231,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
             value: value.value,
             activeColor: color,
             onChanged: (bool newValue) {
-              value.value = newValue;
+              if (onChanged != null) {
+                onChanged(newValue);
+              } else {
+                value.value = newValue;
+              }
             },
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),

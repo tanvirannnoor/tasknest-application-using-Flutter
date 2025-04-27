@@ -538,7 +538,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: BottomNavBar(),
+      bottomNavigationBar: BottomNavBar(currentIndex: 1),
     );
   }
 

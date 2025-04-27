@@ -314,7 +314,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: BottomNavBar(),
+      bottomNavigationBar: BottomNavBar(currentIndex: 0),
       floatingActionButton: FloatingActionButton(
         onPressed: _navigateToAddTask,
         backgroundColor: Colors.indigo,
