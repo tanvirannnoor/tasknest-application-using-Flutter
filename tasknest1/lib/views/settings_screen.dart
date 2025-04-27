@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:tasknest1/controllers/notification_controller.dart';
 import 'widgets/bottom_navbar.dart';
 import 'package:tasknest1/controllers/theme_controller.dart';
 
@@ -14,6 +15,7 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   final box = GetStorage();
   final ThemeController themeController = Get.find<ThemeController>();
+  final NotificationController notificationController = Get.find();
 
   // Settings variables
   final RxBool _darkMode = false.obs;

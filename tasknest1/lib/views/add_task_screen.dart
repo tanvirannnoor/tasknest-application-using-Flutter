@@ -15,12 +15,12 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
   final _descriptionController = TextEditingController();
   final _reminderNotesController = TextEditingController();
   final _remarksController = TextEditingController();
-  
+
   DateTime _startDate = DateTime.now();
   DateTime _deadline = DateTime.now().add(const Duration(days: 1));
   DateTime _nextReminder = DateTime.now().add(const Duration(hours: 12));
   String _status = 'Pending';
-  
+
   final List<String> _statusOptions = ['Pending', 'OnGoing', 'Done'];
   final DateFormat _dateFormat = DateFormat('dd MMM yyyy');
   final DateFormat _dateTimeFormat = DateFormat('dd MMM yyyy - hh:mm a');
@@ -57,19 +57,19 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
       setState(() {
         if (isStartDate) {
           _startDate = DateTime(
-            picked.year, 
-            picked.month, 
+            picked.year,
+            picked.month,
             picked.day,
-            _startDate.hour, 
-            _startDate.minute
+            _startDate.hour,
+            _startDate.minute,
           );
         } else {
           _deadline = DateTime(
-            picked.year, 
-            picked.month, 
+            picked.year,
+            picked.month,
             picked.day,
-            _deadline.hour, 
-            _deadline.minute
+            _deadline.hour,
+            _deadline.minute,
           );
         }
       });
@@ -95,7 +95,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
         );
       },
     );
-    
+
     if (pickedDate != null) {
       TimeOfDay? pickedTime = await showTimePicker(
         context: context,
@@ -113,7 +113,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
           );
         },
       );
-      
+
       if (pickedTime != null) {
         setState(() {
           _nextReminder = DateTime(
@@ -131,6 +131,9 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
   void _submitForm() {
     if (_formKey.currentState!.validate()) {
       final task = Task(
+        id:
+            DateTime.now().millisecondsSinceEpoch
+                .toString(), // Generate unique ID
         title: _titleController.text,
         description: _descriptionController.text,
         startDate: _startDate,
@@ -139,8 +142,11 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
         reminderNotes: _reminderNotesController.text,
         status: _status,
         remarks: _remarksController.text,
+        // These fields are optional or have defaults in the updated Task model
+        isCompleted: _status == 'Done', // Set isCompleted based on status
+        // category and priority can be added if you're collecting them in the form
       );
-      
+
       // Return task.toJson() instead of task object
       Navigator.pop(context, task.toJson());
     }
@@ -187,11 +193,19 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            prefixIcon: const Icon(Icons.title, color: Colors.indigo),
-                            floatingLabelStyle: const TextStyle(color: Colors.indigo),
+                            prefixIcon: const Icon(
+                              Icons.title,
+                              color: Colors.indigo,
+                            ),
+                            floatingLabelStyle: const TextStyle(
+                              color: Colors.indigo,
+                            ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
-                              borderSide: const BorderSide(color: Colors.indigo, width: 2),
+                              borderSide: const BorderSide(
+                                color: Colors.indigo,
+                                width: 2,
+                              ),
                             ),
                           ),
                           validator: (value) {
@@ -209,11 +223,19 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            prefixIcon: const Icon(Icons.description, color: Colors.indigo),
-                            floatingLabelStyle: const TextStyle(color: Colors.indigo),
+                            prefixIcon: const Icon(
+                              Icons.description,
+                              color: Colors.indigo,
+                            ),
+                            floatingLabelStyle: const TextStyle(
+                              color: Colors.indigo,
+                            ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
-                              borderSide: const BorderSide(color: Colors.indigo, width: 2),
+                              borderSide: const BorderSide(
+                                color: Colors.indigo,
+                                width: 2,
+                              ),
                             ),
                           ),
                           maxLines: 3,
@@ -228,7 +250,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                     ),
                   ),
                 ),
-                
+
                 const SizedBox(height: 16),
                 _buildSectionTitle('Dates & Times'),
                 Card(
@@ -259,18 +281,25 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                         ListTile(
                           leading: const CircleAvatar(
                             backgroundColor: Colors.orange,
-                            child: Icon(Icons.notifications_active, color: Colors.white, size: 20),
+                            child: Icon(
+                              Icons.notifications_active,
+                              color: Colors.white,
+                              size: 20,
+                            ),
                           ),
                           title: const Text('Next Reminder'),
                           subtitle: Text(_dateTimeFormat.format(_nextReminder)),
-                          trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                          trailing: const Icon(
+                            Icons.arrow_forward_ios,
+                            size: 16,
+                          ),
                           onTap: () => _selectDateTime(context),
                         ),
                       ],
                     ),
                   ),
                 ),
-                
+
                 const SizedBox(height: 16),
                 _buildSectionTitle('Additional Information'),
                 Card(
@@ -289,11 +318,19 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            prefixIcon: const Icon(Icons.note_alt, color: Colors.orange),
-                            floatingLabelStyle: const TextStyle(color: Colors.indigo),
+                            prefixIcon: const Icon(
+                              Icons.note_alt,
+                              color: Colors.orange,
+                            ),
+                            floatingLabelStyle: const TextStyle(
+                              color: Colors.indigo,
+                            ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
-                              borderSide: const BorderSide(color: Colors.indigo, width: 2),
+                              borderSide: const BorderSide(
+                                color: Colors.indigo,
+                                width: 2,
+                              ),
                             ),
                           ),
                           maxLines: 2,
@@ -306,47 +343,56 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            prefixIcon: const Icon(Icons.pending_actions, color: Colors.purple),
-                            floatingLabelStyle: const TextStyle(color: Colors.indigo),
+                            prefixIcon: const Icon(
+                              Icons.pending_actions,
+                              color: Colors.purple,
+                            ),
+                            floatingLabelStyle: const TextStyle(
+                              color: Colors.indigo,
+                            ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
-                              borderSide: const BorderSide(color: Colors.indigo, width: 2),
+                              borderSide: const BorderSide(
+                                color: Colors.indigo,
+                                width: 2,
+                              ),
                             ),
                           ),
-                          items: _statusOptions.map((String value) {
-                            Color chipColor;
-                            switch (value) {
-                              case 'Pending':
-                                chipColor = Colors.orange;
-                                break;
-                              case 'OnGoing':
-                                chipColor = Colors.blue;
-                                break;
-                              case 'Done':
-                                chipColor = Colors.green;
-                                break;
-                              default:
-                                chipColor = Colors.grey;
-                            }
-                            
-                            return DropdownMenuItem<String>(
-                              value: value,
-                              child: Row(
-                                children: [
-                                  Container(
-                                    width: 12,
-                                    height: 12,
-                                    decoration: BoxDecoration(
-                                      color: chipColor,
-                                      shape: BoxShape.circle,
-                                    ),
+                          items:
+                              _statusOptions.map((String value) {
+                                Color chipColor;
+                                switch (value) {
+                                  case 'Pending':
+                                    chipColor = Colors.orange;
+                                    break;
+                                  case 'OnGoing':
+                                    chipColor = Colors.blue;
+                                    break;
+                                  case 'Done':
+                                    chipColor = Colors.green;
+                                    break;
+                                  default:
+                                    chipColor = Colors.grey;
+                                }
+
+                                return DropdownMenuItem<String>(
+                                  value: value,
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        width: 12,
+                                        height: 12,
+                                        decoration: BoxDecoration(
+                                          color: chipColor,
+                                          shape: BoxShape.circle,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(value),
+                                    ],
                                   ),
-                                  const SizedBox(width: 8),
-                                  Text(value),
-                                ],
-                              ),
-                            );
-                          }).toList(),
+                                );
+                              }).toList(),
                           onChanged: (String? newValue) {
                             setState(() {
                               _status = newValue!;
@@ -361,11 +407,19 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            prefixIcon: const Icon(Icons.comment, color: Colors.teal),
-                            floatingLabelStyle: const TextStyle(color: Colors.indigo),
+                            prefixIcon: const Icon(
+                              Icons.comment,
+                              color: Colors.teal,
+                            ),
+                            floatingLabelStyle: const TextStyle(
+                              color: Colors.indigo,
+                            ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
-                              borderSide: const BorderSide(color: Colors.indigo, width: 2),
+                              borderSide: const BorderSide(
+                                color: Colors.indigo,
+                                width: 2,
+                              ),
                             ),
                           ),
                           maxLines: 2,
@@ -374,7 +428,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                     ),
                   ),
                 ),
-                
+
                 const SizedBox(height: 32),
                 ElevatedButton(
                   onPressed: _submitForm,
@@ -392,7 +446,13 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                     children: [
                       Icon(Icons.add_task),
                       SizedBox(width: 8),
-                      Text('Create Task', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      Text(
+                        'Create Task',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ],
                   ),
                 ),

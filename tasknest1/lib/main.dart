@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:tasknest1/controllers/notification_controller.dart';
+import 'package:tasknest1/controllers/task_controller.dart';
 import 'package:tasknest1/controllers/theme_controller.dart';
 import 'package:tasknest1/themes/app_themes.dart';
 import 'package:tasknest1/views/task_deatil_screen.dart';
@@ -11,15 +13,26 @@ import 'views/calendar_screen.dart';
 import 'views/settings_screen.dart';
 
 void main() async {
+  // Ensure Flutter is initialized
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize storage
   await GetStorage.init();
-  Get.put(ThemeController()); // Initialize GetStorage
-  //await GetStorage().erase(); // 👈 This clears old data
+  
+  // Initialize theme controller
+  Get.put(ThemeController());
+  
+  // Initialize notification controller
+  Get.put(NotificationController());
+  
+  // Create task controller
+  Get.put(TaskController());
+
   runApp(TaskNestApp());
 }
 
 class TaskNestApp extends StatelessWidget {
-final ThemeController themeController = Get.find<ThemeController>();
+  final ThemeController themeController = Get.find<ThemeController>();
 
   @override
   Widget build(BuildContext context) {

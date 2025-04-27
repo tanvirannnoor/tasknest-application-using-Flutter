@@ -42,13 +42,15 @@ class _CalendarScreenState extends State<CalendarScreen> {
   void _loadTasks() {
     try {
       List<dynamic>? savedTasks = box.read('tasks');
-      if (savedTasks != null) {
-        tasks.assignAll(List<Map<String, dynamic>>.from(savedTasks));
-        _generateEventMap();
+      if (savedTasks == null) {
+        tasks.clear();
+        return;
       }
+      tasks.assignAll(List<Map<String, dynamic>>.from(savedTasks));
+      _generateEventMap();
     } catch (e) {
       debugPrint('Error loading tasks: $e');
-      // Initialize with empty list if there's an error
+      tasks.clear();
       box.write('tasks', []);
     }
   }

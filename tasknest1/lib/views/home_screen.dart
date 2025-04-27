@@ -2,16 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:intl/intl.dart';
+import 'package:tasknest1/controllers/task_controller.dart';
+import 'package:tasknest1/controllers/theme_controller.dart';
+import 'package:tasknest1/controllers/notification_controller.dart';
+import 'package:tasknest1/models/task_model.dart';
 import 'widgets/bottom_navbar.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({Key? key}) : super(key: key);
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final TaskController taskController = Get.find();
+  final ThemeController themeController = Get.find();
+  final NotificationController notificationController = Get.find();
+
   final box = GetStorage();
   final tasks = <Map<String, dynamic>>[].obs;
   final selectedStatus = 'OnGoing'.obs;
@@ -27,23 +35,83 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _loadTasks() {
-    try {
-      List<dynamic>? savedTasks = box.read('tasks');
-      if (savedTasks != null) {
-        tasks.assignAll(List<Map<String, dynamic>>.from(savedTasks));
+  try {
+    List<dynamic>? savedTasks = box.read('tasks');
+    if (savedTasks == null) {
+      tasks.clear(); // No tasks yet
+      return;
+    }
+    tasks.assignAll(List<Map<String, dynamic>>.from(savedTasks));
+    if (notificationController.notificationsEnabled) {
+      _scheduleNotificationsForTasks();
+    }
+  } catch (e) {
+    debugPrint('Error loading tasks: $e');
+    tasks.clear();
+  }
+}
+
+
+  void _scheduleNotificationsForTasks() {
+    for (var task in tasks) {
+      if (task['nextReminder'] != null &&
+          DateTime.parse(task['nextReminder']).isAfter(DateTime.now()) &&
+          task['status'] != 'Done') {
+        _scheduleTaskNotification(task);
       }
+    }
+  }
+
+  // This replaces the task creation in HomeScreen's _scheduleTaskNotification method
+  void _scheduleTaskNotification(Map<String, dynamic> task) {
+    if (!notificationController.notificationsEnabled) return;
+
+    try {
+      final taskId = task['id'] ?? task['title'].hashCode.toString();
+      final DateTime? reminderDate =
+          task['nextReminder'] != null
+              ? DateTime.parse(task['nextReminder'])
+              : null;
+      final DateTime? deadline =
+          task['deadline'] != null ? DateTime.parse(task['deadline']) : null;
+
+      // Convert to Task model for the notification controller
+      final taskModel = Task(
+        id: taskId,
+        title: task['title'] ?? 'Task Reminder',
+        description: task['description'],
+        deadline: deadline,
+        status: task['status'] ?? 'Pending',
+        nextReminder: reminderDate,
+        reminderNotes: task['reminderNotes'],
+        remarks: task['remarks'],
+        startDate:
+            task['startDate'] != null
+                ? DateTime.parse(task['startDate'])
+                : null,
+      );
+
+      notificationController.scheduleTaskNotification(taskModel);
     } catch (e) {
-      debugPrint('Error loading tasks: $e');
-      // Initialize with empty list if there's an error
-      box.write('tasks', []);
+      debugPrint('Error scheduling notification: $e');
     }
   }
 
   void _navigateToAddTask() async {
     final result = await Get.toNamed('/add_task');
     if (result != null && result is Map<String, dynamic>) {
+      // Generate unique ID if not present
+      if (result['id'] == null) {
+        result['id'] = DateTime.now().millisecondsSinceEpoch.toString();
+      }
+
       tasks.add(result);
       box.write('tasks', tasks);
+
+      // Schedule notification for the new task
+      if (result['nextReminder'] != null) {
+        _scheduleTaskNotification(result);
+      }
     }
   }
 
@@ -52,11 +120,26 @@ class _HomeScreenState extends State<HomeScreen> {
       '/task_detail',
       arguments: {'task': task, 'index': index},
     );
+
     if (result != null) {
       if (result == 'delete') {
+        // Cancel notification if task is deleted
+        final taskId = task['id'] ?? task['title'].hashCode.toString();
+        notificationController.cancelTaskNotification(taskId);
         tasks.removeAt(index);
       } else if (result is Map<String, dynamic>) {
+        // Cancel old notification and schedule new one if task is updated
+        final taskId = task['id'] ?? task['title'].hashCode.toString();
+        notificationController.cancelTaskNotification(taskId);
+
         tasks[index] = result;
+
+        // Schedule new notification if needed
+        if (result['nextReminder'] != null &&
+            result['status'] != 'Done' &&
+            DateTime.parse(result['nextReminder']).isAfter(DateTime.now())) {
+          _scheduleTaskNotification(result);
+        }
       }
       box.write('tasks', tasks);
     }
@@ -74,9 +157,9 @@ class _HomeScreenState extends State<HomeScreen> {
   Color _getStatusColor(String status) {
     switch (status) {
       case 'OnGoing':
-        return Colors.blue;
+        return Get.theme.colorScheme.primary;
       case 'Pending':
-        return Colors.orange;
+        return Get.theme.colorScheme.secondary;
       case 'Done':
         return Colors.green;
       default:
@@ -90,8 +173,6 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: const Text('Your Tasks'),
         centerTitle: true,
-        backgroundColor: Colors.indigo,
-        foregroundColor: Colors.white,
         elevation: 0,
       ),
       body: Container(
@@ -99,7 +180,10 @@ class _HomeScreenState extends State<HomeScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Colors.indigo.shade50, Colors.white],
+            colors: [
+              Get.theme.colorScheme.background,
+              Get.theme.scaffoldBackgroundColor,
+            ],
           ),
         ),
         child: Column(
@@ -107,10 +191,13 @@ class _HomeScreenState extends State<HomeScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Get.theme.cardColor,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.grey.withOpacity(0.2),
+                    color:
+                        Get.isDarkMode
+                            ? Colors.black26
+                            : Colors.grey.withOpacity(0.2),
                     spreadRadius: 1,
                     blurRadius: 2,
                     offset: const Offset(0, 1),
@@ -120,11 +207,11 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Filter by Status:',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      color: Colors.indigo,
+                      color: Get.theme.colorScheme.primary,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -148,7 +235,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                   color:
                                       isSelected
                                           ? Colors.white
-                                          : Colors.black87,
+                                          : Get
+                                              .theme
+                                              .textTheme
+                                              .bodyMedium
+                                              ?.color,
                                   fontWeight:
                                       isSelected
                                           ? FontWeight.bold
@@ -158,9 +249,11 @@ class _HomeScreenState extends State<HomeScreen> {
                               backgroundColor:
                                   isSelected
                                       ? status == 'All'
-                                          ? Colors.indigo
+                                          ? Get.theme.colorScheme.primary
                                           : _getStatusColor(status)
-                                      : Colors.grey.shade200,
+                                      : Get.theme.disabledColor.withOpacity(
+                                        0.2,
+                                      ),
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 12,
                                 vertical: 2,
@@ -185,7 +278,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         Icon(
                           Icons.assignment_outlined,
                           size: 80,
-                          color: Colors.grey.shade400,
+                          color: Get.theme.disabledColor,
                         ),
                         const SizedBox(height: 16),
                         Text(
@@ -194,14 +287,22 @@ class _HomeScreenState extends State<HomeScreen> {
                               : 'No ${selectedStatus.value} tasks found.',
                           style: TextStyle(
                             fontSize: 18,
-                            color: Colors.grey.shade600,
+                            color: Get.theme.textTheme.bodyMedium?.color,
                           ),
                         ),
                         const SizedBox(height: 8),
                         if (selectedStatus.value != 'All')
                           TextButton.icon(
-                            icon: const Icon(Icons.filter_list),
-                            label: const Text('Show all tasks'),
+                            icon: Icon(
+                              Icons.filter_list,
+                              color: Get.theme.colorScheme.primary,
+                            ),
+                            label: Text(
+                              'Show all tasks',
+                              style: TextStyle(
+                                color: Get.theme.colorScheme.primary,
+                              ),
+                            ),
                             onPressed: () => selectedStatus.value = 'All',
                           ),
                       ],
@@ -238,7 +339,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               decoration: BoxDecoration(
                                 color: _getStatusColor(
                                   task['status'],
-                                ).withOpacity(0.1),
+                                ).withOpacity(Get.isDarkMode ? 0.3 : 0.1),
                                 borderRadius: const BorderRadius.only(
                                   topLeft: Radius.circular(12),
                                   topRight: Radius.circular(12),
@@ -249,9 +350,15 @@ class _HomeScreenState extends State<HomeScreen> {
                                   Expanded(
                                     child: Text(
                                       task['title'] ?? '',
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 16,
+                                        color:
+                                            Get
+                                                .theme
+                                                .textTheme
+                                                .titleMedium
+                                                ?.color,
                                       ),
                                     ),
                                   ),
@@ -294,12 +401,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                     _formatDate(task['deadline']),
                                   ),
                                   const SizedBox(height: 8),
-                                  _buildInfoRow(
-                                    Icons.notifications_active,
-                                    Colors.orange,
-                                    'Next Reminder:',
-                                    _formatDateTime(task['nextReminder']),
-                                  ),
+                                  if (task['nextReminder'] != null)
+                                    _buildInfoRow(
+                                      Icons.notifications_active,
+                                      Get.theme.colorScheme.secondary,
+                                      'Next Reminder:',
+                                      _formatDateTime(task['nextReminder']),
+                                    ),
                                 ],
                               ),
                             ),
@@ -317,7 +425,7 @@ class _HomeScreenState extends State<HomeScreen> {
       bottomNavigationBar: BottomNavBar(currentIndex: 0),
       floatingActionButton: FloatingActionButton(
         onPressed: _navigateToAddTask,
-        backgroundColor: Colors.indigo,
+        backgroundColor: Get.theme.colorScheme.primary,
         elevation: 4,
         child: const Icon(Icons.add, size: 40, color: Colors.white),
       ),
@@ -330,7 +438,7 @@ class _HomeScreenState extends State<HomeScreen> {
       children: [
         CircleAvatar(
           radius: 12,
-          backgroundColor: color.withOpacity(0.2),
+          backgroundColor: color.withOpacity(Get.isDarkMode ? 0.3 : 0.2),
           child: Icon(icon, size: 14, color: color),
         ),
         const SizedBox(width: 12),
@@ -338,23 +446,34 @@ class _HomeScreenState extends State<HomeScreen> {
           '$label ',
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            color: Colors.grey.shade700,
+            color: Get.theme.textTheme.bodyMedium?.color?.withOpacity(0.8),
           ),
         ),
         Expanded(
-          child: Text(value, style: const TextStyle(color: Colors.black87)),
+          child: Text(
+            value,
+            style: TextStyle(color: Get.theme.textTheme.bodyMedium?.color),
+          ),
         ),
       ],
     );
   }
 
   String _formatDate(String isoDate) {
-    final date = DateTime.parse(isoDate);
-    return _dateFormat.format(date);
+    try {
+      final date = DateTime.parse(isoDate);
+      return _dateFormat.format(date);
+    } catch (e) {
+      return 'Invalid date';
+    }
   }
 
   String _formatDateTime(String isoDateTime) {
-    final dateTime = DateTime.parse(isoDateTime);
-    return _dateTimeFormat.format(dateTime);
+    try {
+      final dateTime = DateTime.parse(isoDateTime);
+      return _dateTimeFormat.format(dateTime);
+    } catch (e) {
+      return 'Invalid date/time';
+    }
   }
 }
